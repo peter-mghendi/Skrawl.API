@@ -18,7 +18,7 @@ namespace Skrawl.API
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
+                .ConfigureWebHostDefault(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
                 });
