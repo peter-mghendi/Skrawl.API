@@ -22,16 +22,16 @@ namespace Skrawl.API.Controllers
 
         // GET: api/Notes
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Note>>> GetNoteItems()
+        public async Task<ActionResult<IEnumerable<Note>>> GetNotes()
         {
-            return await _context.NoteItems.ToListAsync();
+            return await _context.Notes.ToListAsync();
         }
 
         // GET: api/Notes/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Note>> GetNote(long id)
         {
-            var note = await _context.NoteItems.FindAsync(id);
+            var note = await _context.Notes.FindAsync(id);
 
             if (note == null)
             {
@@ -79,7 +79,7 @@ namespace Skrawl.API.Controllers
         [HttpPost]
         public async Task<ActionResult<Note>> PostNote(Note note)
         {
-            _context.NoteItems.Add(note);
+            _context.Notes.Add(note);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetNote), new { id = note.Id }, note);
@@ -89,13 +89,13 @@ namespace Skrawl.API.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<Note>> DeleteNote(long id)
         {
-            var note = await _context.NoteItems.FindAsync(id);
+            var note = await _context.Notes.FindAsync(id);
             if (note == null)
             {
                 return NotFound();
             }
 
-            _context.NoteItems.Remove(note);
+            _context.Notes.Remove(note);
             await _context.SaveChangesAsync();
 
             return note;
@@ -103,7 +103,7 @@ namespace Skrawl.API.Controllers
 
         private bool NoteExists(long id)
         {
-            return _context.NoteItems.Any(e => e.Id == id);
+            return _context.Notes.Any(e => e.Id == id);
         }
     }
 }

@@ -8,6 +8,6 @@ namespace Skrawl.API.Models
         {
         }
 
-        public DbSet<Note> NoteItems { get; set; }
+        public DbSet<Note> Notes { get; set; }
     }
 }
