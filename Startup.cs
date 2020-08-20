@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
-using Skrawl.API.Models;
+using Skrawl.API.Data;
 
 namespace Skrawl.API
 {
@@ -20,7 +20,9 @@ namespace Skrawl.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<NoteContext>(opt => opt.UseInMemoryDatabase("NoteList"));
+            services.AddDbContext<SkrawlContext>(opt => 
+                opt.UseNpgsql(this.Configuration.GetConnectionString("SkrawlContext")));
+
             services.AddControllers();
         }
 
