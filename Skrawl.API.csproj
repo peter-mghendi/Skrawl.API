@@ -4,6 +4,10 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
+  <Target Name="PrePublishTarget" AfterTargets="Publish">
+    <Exec Command="dotnet ef database update" />
+  </Target>
+
   <ItemGroup>
     <PackageReference Include="Bogus" Version="30.0.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.7">

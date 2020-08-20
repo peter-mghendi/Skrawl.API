@@ -11,7 +11,7 @@ namespace Skrawl.API.Data
     {
         public static void Initialize(SkrawlContext context)
         {
-            context.Database.EnsureCreated();
+            // context.Database.EnsureCreated();
 
             // Look for any notes.
             if (context.Notes.Any())

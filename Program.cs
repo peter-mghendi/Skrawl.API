@@ -13,12 +13,12 @@ namespace Skrawl.API
         {
             IHost host = CreateHostBuilder(args).Build();
             
-            CreateDbIfNotExists(host);
+            InitializeDatabase(host);
 
             host.Run();
         }
 
-        private static void CreateDbIfNotExists(IHost host)
+        private static void InitializeDatabase(IHost host)
         {
             using (var scope = host.Services.CreateScope())
             {
