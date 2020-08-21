@@ -1,4 +1,4 @@
-namespace Skrawl.API.Models
+namespace Skrawl.API.Data.Models
 {
     public class Note
     {

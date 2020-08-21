@@ -1,11 +1,9 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Skrawl.API.Models;
+using Skrawl.API.Data;
+using Skrawl.API.Data.Models;
 
 namespace Skrawl.API.Controllers
 {
@@ -13,9 +11,9 @@ namespace Skrawl.API.Controllers
     [ApiController]
     public class NotesController : ControllerBase
     {
-        private readonly NoteContext _context;
+        private readonly SkrawlContext _context;
 
-        public NotesController(NoteContext context)
+        public NotesController(SkrawlContext context)
         {
             _context = context;
         }
@@ -60,7 +58,7 @@ namespace Skrawl.API.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!NoteExists(id))
+                if (!await NoteExistsAsync(id))
                 {
                     return NotFound();
                 }
@@ -101,9 +99,9 @@ namespace Skrawl.API.Controllers
             return note;
         }
 
-        private bool NoteExists(long id)
+        private async Task<bool> NoteExistsAsync(long id)
         {
-            return _context.Notes.Any(e => e.Id == id);
+            return await _context.Notes.AnyAsync(e => e.Id == id);
         }
     }
 }
