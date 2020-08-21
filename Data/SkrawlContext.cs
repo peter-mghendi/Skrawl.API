@@ -10,10 +10,12 @@ namespace Skrawl.API.Data
         }
 
         public DbSet<Note> Notes { get; set; }
+        public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Note>().ToTable("Note");
+            modelBuilder.Entity<User>().ToTable("User");
         }
     }
 }
