@@ -1,3 +1,4 @@
+using System.Text;
 using System.Reflection.Metadata;
 using System.Collections.Generic;
 using Bogus;
@@ -21,13 +22,17 @@ namespace Skrawl.API.Data
                 return;   // DB has been seeded
             }
 
+            var passwordService = new PasswordService();
+            byte[] salt = null;
+
             List<User> users = new Faker<User>()
                 .StrictMode(false)
                 .Rules((faker, user) =>
                 {
                     user.Email = faker.Person.Email;
                     user.Username = faker.Person.UserName;
-                    user.Password = "password";
+                    user.Password = passwordService.HashPassword(Encoding.UTF8.GetBytes("password"), ref salt);
+                    user.Salt = salt;
                     user.Role = faker.PickRandom<string>(new[] {UserRoles.Admin, UserRoles.User});
                 })
                 .Generate(10);

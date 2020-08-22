@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Skrawl.API.Migrations
@@ -15,7 +16,8 @@ namespace Skrawl.API.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Username = table.Column<string>(nullable: true),
                     Email = table.Column<string>(nullable: true),
-                    Password = table.Column<string>(nullable: true),
+                    Password = table.Column<byte[]>(nullable: true),
+                    Salt = table.Column<byte[]>(nullable: true),
                     Role = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
