@@ -17,7 +17,7 @@ namespace Skrawl.API.Data
             // context.Database.EnsureCreated();
 
             // Look for any notes.
-            if (context.Notes.Any())
+            if (context.Notes.Any() && context.Users.Any())
             {
                 return;   // DB has been seeded
             }
@@ -25,13 +25,15 @@ namespace Skrawl.API.Data
             var passwordService = new PasswordService();
             byte[] salt = null;
 
+            byte[] password = passwordService.HashPassword(Encoding.UTF8.GetBytes("password"), ref salt);
+
             List<User> users = new Faker<User>()
                 .StrictMode(false)
                 .Rules((faker, user) =>
                 {
                     user.Email = faker.Person.Email;
                     user.Username = faker.Person.UserName;
-                    user.Password = passwordService.HashPassword(Encoding.UTF8.GetBytes("password"), ref salt);
+                    user.Password = password;
                     user.Salt = salt;
                     user.Role = faker.PickRandom<string>(new[] {UserRoles.Admin, UserRoles.User});
                 })

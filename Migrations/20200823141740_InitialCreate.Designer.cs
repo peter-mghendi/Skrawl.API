@@ -10,7 +10,7 @@ using Skrawl.API.Data;
 namespace Skrawl.API.Migrations
 {
     [DbContext(typeof(SkrawlContext))]
-    [Migration("20200821211218_InitialCreate")]
+    [Migration("20200823141740_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

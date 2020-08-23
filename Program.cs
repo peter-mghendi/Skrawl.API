@@ -23,16 +23,18 @@ namespace Skrawl.API
             using (var scope = host.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
+                var logger = services.GetRequiredService<ILogger<Program>>();
 
                 try
                 {
                     var context = services.GetRequiredService<SkrawlContext>();
                     DbInitializer.Initialize(context);
+                    logger.LogInformation($"Database has been initialized.");
                 }
                 catch (Exception ex)
                 {
-                    var logger = services.GetRequiredService<ILogger<Program>>();
                     logger.LogError(ex, "An error occurred creating the DB.");
+                    // throw;
                 }
             }
         }
