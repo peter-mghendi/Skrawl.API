@@ -111,5 +111,73 @@ namespace Skrawl.API.Controllers
                 return Unauthorized(e.Message); // return 401 so that the client side can redirect the user to login page
             }
         }
+
+        [HttpPost("impersonation/start")]
+        [Authorize(Roles = UserRoles.Admin)]
+        public async Task<ActionResult> Impersonate([FromBody] ImpersonationRequest request)
+        {
+            var email = User.Identity.Name;
+            _logger.LogInformation($"User [{email}] is trying to impersonate [{request.Email}].");
+
+            var impersonatedRole = await _userService.GetUserRoleAsync(request.Email);
+            if (string.IsNullOrWhiteSpace(impersonatedRole))
+            {
+                _logger.LogInformation($"User [{email}] failed to impersonate [{request.Email}] due to the target user not found.");
+                return BadRequest($"The target user [{request.Email}] is not found.");
+            }
+            if (impersonatedRole == UserRoles.Admin)
+            {
+                _logger.LogInformation($"User [{email}] is not allowed to impersonate another Admin.");
+                return BadRequest("This action is not supported.");
+            }
+
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.Name,request.Email),
+                new Claim(ClaimTypes.Role, impersonatedRole),
+                new Claim("OriginalEmail", email)
+            };
+
+            var jwtResult = _jwtAuthManager.GenerateTokens(request.Email, claims, DateTime.Now);
+            _logger.LogInformation($"User [{request.Email}] is impersonating [{request.Email}] in the system.");
+            return Ok(new LoginResult
+            {
+                Email = request.Email,
+                Role = impersonatedRole,
+                OriginalEmail = email,
+                AccessToken = jwtResult.AccessToken,
+                RefreshToken = jwtResult.RefreshToken.TokenString
+            });
+        }
+
+        [HttpPost("impersonation/stop")]
+        public async Task<ActionResult> StopImpersonation()
+        {
+            var email = User.Identity.Name;
+            var originalEmail = User.FindFirst("OriginalEmail")?.Value;
+            if (string.IsNullOrWhiteSpace(originalEmail))
+            {
+                return BadRequest("You are not impersonating anyone.");
+            }
+            _logger.LogInformation($"User [{originalEmail}] is trying to stop impersonate [{email}].");
+
+            var role = await _userService.GetUserRoleAsync(originalEmail);
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.Name, originalEmail),
+                new Claim(ClaimTypes.Role, role)
+            };
+
+            var jwtResult = _jwtAuthManager.GenerateTokens(originalEmail, claims, DateTime.Now);
+            _logger.LogInformation($"User [{originalEmail}] has stopped impersonation.");
+            return Ok(new LoginResult
+            {
+                Email = originalEmail,
+                Role = role,
+                OriginalEmail = null,
+                AccessToken = jwtResult.AccessToken,
+                RefreshToken = jwtResult.RefreshToken.TokenString
+            });
+        }
     }
 }
