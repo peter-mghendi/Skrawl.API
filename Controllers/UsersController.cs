@@ -7,8 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Skrawl.API.Services;
 using Skrawl.API.Infrastructure;
-using System.Text.Json.Serialization;
-using System.ComponentModel.DataAnnotations;
 using Skrawl.API.Data.Models;
 
 namespace Skrawl.API.Controllers
@@ -113,47 +111,5 @@ namespace Skrawl.API.Controllers
 
             return user;
         }
-    }
-
-    // TODO Clean up
-    public class LoginRequest
-    {
-        [Required]
-        [JsonPropertyName("email")]
-        public string Email { get; set; }
-
-        [Required]
-        [JsonPropertyName("password")]
-        public string Password { get; set; }
-    }
-
-    public class LoginResult
-    {
-        [JsonPropertyName("email")]
-        public string Email { get; set; }
-
-        [JsonPropertyName("role")]
-        public string Role { get; set; }
-
-        [JsonPropertyName("originalEmail")]
-        public string OriginalEmail { get; set; }
-
-        [JsonPropertyName("accessToken")]
-        public string AccessToken { get; set; }
-
-        [JsonPropertyName("refreshToken")]
-        public string RefreshToken { get; set; }
-    }
-
-    public class RefreshTokenRequest
-    {
-        [JsonPropertyName("refreshToken")]
-        public string RefreshToken { get; set; }
-    }
-
-    public class ImpersonationRequest
-    {
-        [JsonPropertyName("email")]
-        public string Email { get; set; }
     }
 }

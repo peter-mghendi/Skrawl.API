@@ -1,7 +1,7 @@
 using System;
 using System.Text.Json.Serialization;
 
-namespace Skrawl.API.Infrastructure
+namespace Skrawl.API.Data.Models
 {
     public class RefreshToken
     {

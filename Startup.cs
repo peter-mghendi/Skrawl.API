@@ -12,6 +12,7 @@ using Skrawl.API.Infrastructure;
 using Skrawl.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Skrawl.API.Data.Models;
 
 namespace Skrawl.API
 {
