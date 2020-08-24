@@ -1,0 +1,115 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
+using Skrawl.API.Data;
+using Skrawl.API.Data.Models;
+using Skrawl.API.Infrastructure;
+using Skrawl.API.Services;
+
+namespace Skrawl.API.Controllers
+{
+    [Route("api/users/[controller]")]
+    [ApiController]
+    public class TokensController : ControllerBase
+    {
+        private readonly SkrawlContext _context;
+        private readonly ILogger<TokensController> _logger;
+        private readonly IUserService _userService;
+        private readonly IJwtAuthManager _jwtAuthManager;
+
+        public TokensController(
+            SkrawlContext context,
+            ILogger<TokensController> logger,
+            IUserService userService,
+            IJwtAuthManager jwtAuthManager)
+        {
+            _context = context;
+            _logger = logger;
+            _userService = userService;
+            _jwtAuthManager = jwtAuthManager;
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public async Task<ActionResult> Login(LoginRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
+            if (!await _userService.IsValidUserCredentialsAsync(request.Email, request.Password))
+            {
+                return Unauthorized();
+            }
+
+            var role = await _userService.GetUserRoleAsync(request.Email);
+
+            var claims = new Claim[]
+            {
+                new Claim(ClaimTypes.Name, request.Email),
+                new Claim(ClaimTypes.Role, role)
+            };
+
+            var jwtResult = _jwtAuthManager.GenerateTokens(request.Email, claims, DateTime.Now);
+            _logger.LogInformation($"User [{request.Email}] logged in the system.");
+            return Ok(new LoginResult
+            {
+                Email = request.Email,
+                Role = role,
+                AccessToken = jwtResult.AccessToken,
+                RefreshToken = jwtResult.RefreshToken.TokenString
+            });
+        }
+
+        [HttpPost("invalidate")]
+        [Authorize]
+        public ActionResult Logout()
+        {
+            var email = User.Identity.Name;
+            _jwtAuthManager.RemoveRefreshTokenByEmail(email); // can be more specific to ip, user agent, device name, etc.
+            _logger.LogInformation($"User [{email}] logged out the system.");
+            return Ok();
+        }
+
+        [HttpPost("refresh")]
+        [Authorize]
+        public async Task<ActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
+        {
+            try
+            {
+                var email = User.Identity.Name;
+                _logger.LogInformation($"User [{email}] is trying to refresh JWT token.");
+
+                if (string.IsNullOrWhiteSpace(request.RefreshToken))
+                {
+                    return Unauthorized();
+                }
+
+                var accessToken = await HttpContext.GetTokenAsync("Bearer", "access_token");
+                var jwtResult = _jwtAuthManager.Refresh(request.RefreshToken, accessToken, DateTime.Now);
+                _logger.LogInformation($"User [{email}] has refreshed JWT token.");
+                return Ok(new LoginResult
+                {
+                    Email = email,
+                    Role = User.FindFirst(ClaimTypes.Role)?.Value ?? string.Empty,
+                    AccessToken = jwtResult.AccessToken,
+                    RefreshToken = jwtResult.RefreshToken.TokenString
+                });
+            }
+            catch (SecurityTokenException e)
+            {
+                return Unauthorized(e.Message); // return 401 so that the client side can redirect the user to login page
+            }
+        }
+    }
+}

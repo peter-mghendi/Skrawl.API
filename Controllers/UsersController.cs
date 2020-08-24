@@ -113,41 +113,6 @@ namespace Skrawl.API.Controllers
 
             return user;
         }
-
-        
-
-        [AllowAnonymous]
-        [HttpPost("tokens")]
-        public async Task<ActionResult> Login(LoginRequest request)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest();
-            }
-
-            if (!await _userService.IsValidUserCredentialsAsync(request.Email, request.Password))
-            {
-                return Unauthorized();
-            }
-
-            var role = await _userService.GetUserRoleAsync(request.Email);
-
-            var claims = new Claim[]
-            {
-                new Claim(ClaimTypes.Name, request.Email),
-                new Claim(ClaimTypes.Role, role)
-            };
-
-            var jwtResult = _jwtAuthManager.GenerateTokens(request.Email, claims, DateTime.Now);
-            _logger.LogInformation($"User [{request.Email}] logged in the system.");
-            return Ok(new LoginResult
-            {
-                Email = request.Email,
-                Role = role,
-                AccessToken = jwtResult.AccessToken,
-                RefreshToken = jwtResult.RefreshToken.TokenString
-            });
-        }
     }
 
     // TODO Clean up
