@@ -5,6 +5,7 @@ using Skrawl.API.Data;
 using Skrawl.API.Data.Models;
 using System.Linq;
 using System.Threading.Tasks;
+using Skrawl.API.Infrastructure;
 
 namespace Skrawl.API.Services
 {
@@ -74,7 +75,7 @@ namespace Skrawl.API.Services
 
         public async Task<User> CreateUser(User user)
         {
-            user.Role = UserRoles.User;
+            user.Role = Policies.User;
             user.Notes = null;
 
             byte[] salt = null;

@@ -31,11 +31,12 @@ namespace Skrawl.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<SkrawlContext>(options => {
+            services.AddDbContext<SkrawlContext>(options =>
+            {
                 var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? Development;
                 string connectionString;
 
-                if(env == Development) 
+                if (env == Development)
                 {
                     connectionString = this.Configuration.GetConnectionString("SkrawlContext");
                 }
@@ -57,7 +58,7 @@ namespace Skrawl.API
                         TrustServerCertificate = true
                     };
 
-                    connectionString = builder.ToString();                 
+                    connectionString = builder.ToString();
                 }
 
                 options.UseNpgsql(connectionString);
@@ -86,6 +87,12 @@ namespace Skrawl.API
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.FromMinutes(1)
                 };
+            });
+
+            services.AddAuthorization(config =>
+            {
+                config.AddPolicy(Policies.Admin, Policies.AdminPolicy());
+                config.AddPolicy(Policies.User, Policies.UserPolicy());
             });
 
             services.AddSingleton<IJwtAuthManager, JwtAuthManager>();

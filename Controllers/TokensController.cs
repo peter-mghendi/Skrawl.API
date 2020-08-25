@@ -111,7 +111,7 @@ namespace Skrawl.API.Controllers
         }
 
         [HttpPost("impersonation/start")]
-        [Authorize(Roles = UserRoles.Admin)]
+        [Authorize(Policy = Policies.Admin)]
         public async Task<ActionResult<LoginResult>> Impersonate([FromBody] ImpersonationRequest request)
         {
             var email = User.Identity.Name;
@@ -123,7 +123,7 @@ namespace Skrawl.API.Controllers
                 _logger.LogInformation($"User [{email}] failed to impersonate [{request.Email}] due to the target user not found.");
                 return BadRequest($"The target user [{request.Email}] is not found.");
             }
-            if (impersonatedRole == UserRoles.Admin)
+            if (impersonatedRole == Policies.Admin)
             {
                 _logger.LogInformation($"User [{email}] is not allowed to impersonate another Admin.");
                 return BadRequest("This action is not supported.");

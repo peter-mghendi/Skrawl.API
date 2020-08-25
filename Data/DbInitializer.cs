@@ -7,6 +7,7 @@ using Skrawl.API.Data.Models;
 using System;
 using System.Linq;
 using Skrawl.API.Services;
+using Skrawl.API.Infrastructure;
 
 namespace Skrawl.API.Data
 {
@@ -35,7 +36,7 @@ namespace Skrawl.API.Data
                     user.Username = faker.Person.UserName;
                     user.Password = password;
                     user.Salt = salt;
-                    user.Role = faker.PickRandom<string>(new[] {UserRoles.Admin, UserRoles.User});
+                    user.Role = faker.PickRandom<string>(new[] {Policies.Admin, Policies.User});
                 })
                 .Generate(10);
 
