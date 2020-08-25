@@ -37,7 +37,7 @@ namespace Skrawl.API.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<ActionResult> Login(LoginRequest request)
+        public async Task<ActionResult<LoginResult>> Login(LoginRequest request)
         {
             if (!ModelState.IsValid)
             {
@@ -59,13 +59,14 @@ namespace Skrawl.API.Controllers
 
             var jwtResult = _jwtAuthManager.GenerateTokens(request.Email, claims, DateTime.Now);
             _logger.LogInformation($"User [{request.Email}] logged in the system.");
-            return Ok(new LoginResult
+            
+            return new LoginResult
             {
                 Email = request.Email,
                 Role = role,
                 AccessToken = jwtResult.AccessToken,
                 RefreshToken = jwtResult.RefreshToken.TokenString
-            });
+            };
         }
 
         [HttpPost("invalidate")]
@@ -80,7 +81,7 @@ namespace Skrawl.API.Controllers
 
         [HttpPost("refresh")]
         [Authorize]
-        public async Task<ActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
+        public async Task<ActionResult<LoginResult>> RefreshToken([FromBody] RefreshTokenRequest request)
         {
             try
             {
@@ -95,13 +96,13 @@ namespace Skrawl.API.Controllers
                 var accessToken = await HttpContext.GetTokenAsync("Bearer", "access_token");
                 var jwtResult = _jwtAuthManager.Refresh(request.RefreshToken, accessToken, DateTime.Now);
                 _logger.LogInformation($"User [{email}] has refreshed JWT token.");
-                return Ok(new LoginResult
+                return new LoginResult
                 {
                     Email = email,
                     Role = User.FindFirst(ClaimTypes.Role)?.Value ?? string.Empty,
                     AccessToken = jwtResult.AccessToken,
                     RefreshToken = jwtResult.RefreshToken.TokenString
-                });
+                };
             }
             catch (SecurityTokenException e)
             {
@@ -111,7 +112,7 @@ namespace Skrawl.API.Controllers
 
         [HttpPost("impersonation/start")]
         [Authorize(Roles = UserRoles.Admin)]
-        public async Task<ActionResult> Impersonate([FromBody] ImpersonationRequest request)
+        public async Task<ActionResult<LoginResult>> Impersonate([FromBody] ImpersonationRequest request)
         {
             var email = User.Identity.Name;
             _logger.LogInformation($"User [{email}] is trying to impersonate [{request.Email}].");
@@ -137,18 +138,19 @@ namespace Skrawl.API.Controllers
 
             var jwtResult = _jwtAuthManager.GenerateTokens(request.Email, claims, DateTime.Now);
             _logger.LogInformation($"User [{request.Email}] is impersonating [{request.Email}] in the system.");
-            return Ok(new LoginResult
+
+            return new LoginResult
             {
                 Email = request.Email,
                 Role = impersonatedRole,
                 OriginalEmail = email,
                 AccessToken = jwtResult.AccessToken,
                 RefreshToken = jwtResult.RefreshToken.TokenString
-            });
+            };
         }
 
         [HttpPost("impersonation/stop")]
-        public async Task<ActionResult> StopImpersonation()
+        public async Task<ActionResult<LoginResult>> StopImpersonation()
         {
             var email = User.Identity.Name;
             var originalEmail = User.FindFirst("OriginalEmail")?.Value;
@@ -167,14 +169,15 @@ namespace Skrawl.API.Controllers
 
             var jwtResult = _jwtAuthManager.GenerateTokens(originalEmail, claims, DateTime.Now);
             _logger.LogInformation($"User [{originalEmail}] has stopped impersonation.");
-            return Ok(new LoginResult
+
+            return new LoginResult
             {
                 Email = originalEmail,
                 Role = role,
                 OriginalEmail = null,
                 AccessToken = jwtResult.AccessToken,
                 RefreshToken = jwtResult.RefreshToken.TokenString
-            });
+            };
         }
     }
 }

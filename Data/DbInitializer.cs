@@ -46,7 +46,7 @@ namespace Skrawl.API.Data
                 .StrictMode(false)
                 .Rules((faker, note) => 
                 {
-                    note.Title = faker.Lorem.Sentence();
+                    note.Title = faker.Lorem.Sentence(2, 1);
                     note.Body = faker.Lorem.Paragraph();
                     note.UserId = faker.PickRandom<User>(users).Id;
                 })

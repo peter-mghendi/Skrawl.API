@@ -61,5 +61,30 @@ namespace Skrawl.API.Services
 
             return user.Role;
         }
+
+        public UserDTO ItemToDTO(User user) =>
+        new UserDTO
+        {
+            Id = user.Id,
+            Username = user.Username,
+            Email = user.Email,
+            Role = user.Role,
+            Notes = user.Notes
+        };
+
+        public async Task<User> CreateUser(User user)
+        {
+            user.Role = UserRoles.User;
+            user.Notes = null;
+
+            byte[] salt = null;
+            user.Password = _passwordService.HashPassword(user.Password, ref salt);
+            user.Salt = salt;
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            return user;
+        }
     }
 }

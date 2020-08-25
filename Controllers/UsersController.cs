@@ -1,3 +1,4 @@
+using System.Text;
 using System.Security.Claims;
 using System;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Skrawl.API.Services;
 using Skrawl.API.Infrastructure;
 using Skrawl.API.Data.Models;
+using Microsoft.Extensions.Options;
 
 namespace Skrawl.API.Controllers
 {
@@ -34,7 +36,7 @@ namespace Skrawl.API.Controllers
 
         // GET: api/Users/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(long id)
+        public async Task<ActionResult<UserDTO>> GetUser(long id)
         {
             var user = await _userService.Context.Users.FindAsync(id);
 
@@ -43,7 +45,7 @@ namespace Skrawl.API.Controllers
                 return NotFound();
             }
 
-            return user;
+            return _userService.ItemToDTO(user);
         }
 
         // PUT: api/Users/5
@@ -69,10 +71,8 @@ namespace Skrawl.API.Controllers
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
 
             return NoContent();
@@ -83,22 +83,37 @@ namespace Skrawl.API.Controllers
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
         [AllowAnonymous]
-        public async Task<ActionResult<User>> PostUser(User user)
+        public async Task<IActionResult> PostUser(
+            [FromBody] SignupRequest request,
+            [FromServices] IOptions<ApiBehaviorOptions> apiBehaviorOptions)
         {
-            // TODO Move this to UserService
-            byte[] salt = null;
-            user.Password = _passwordService.HashPassword(user.Password, ref salt);
-            user.Salt = salt;
+            User user = new User
+            {
+                Username = request.Username,
+                Email = request.Email,
+                Password = Encoding.UTF8.GetBytes(request.Password)
+            };
 
-            _userService.Context.Users.Add(user);
-            await _userService.Context.SaveChangesAsync();
+            try
+            {
+                user = await _userService.CreateUser(user);
+            }
+            catch (DbUpdateException)
+            {
+                if (await _userService.IsAnExistingUserAsync(user.Email))
+                {
+                    ModelState.AddModelError(nameof(user.Email), "That email address is already in use");
+                    return apiBehaviorOptions.Value.InvalidModelStateResponseFactory(ControllerContext);
+                }
+                else throw;
+            }
 
-            return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
+            return CreatedAtAction(nameof(GetUser), new { id = user.Id }, _userService.ItemToDTO(user));
         }
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<User>> DeleteUser(long id)
+        public async Task<ActionResult<UserDTO>> DeleteUser(long id)
         {
             var user = await _userService.Context.Users.FindAsync(id);
             if (user == null)
@@ -109,7 +124,7 @@ namespace Skrawl.API.Controllers
             _userService.Context.Users.Remove(user);
             await _userService.Context.SaveChangesAsync();
 
-            return user;
+            return _userService.ItemToDTO(user);
         }
     }
 }

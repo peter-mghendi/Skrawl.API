@@ -5,7 +5,7 @@ namespace Skrawl.API.Data.Models
 {
     public class LoginRequest
     {
-        [Required]
+        [Required, EmailAddress]
         [JsonPropertyName("email")]
         public string Email { get; set; }
 

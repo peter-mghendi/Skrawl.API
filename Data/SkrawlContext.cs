@@ -14,8 +14,7 @@ namespace Skrawl.API.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Note>().ToTable("Note");
-            modelBuilder.Entity<User>().ToTable("User");
+            modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
         }
     }
 }
