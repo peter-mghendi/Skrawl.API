@@ -7,6 +7,12 @@ using Microsoft.EntityFrameworkCore;
 using Skrawl.API.Data;
 using System;
 using Npgsql;
+using System.Text;
+using Skrawl.API.Infrastructure;
+using Skrawl.API.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Skrawl.API.Data.Models;
 
 namespace Skrawl.API
 {
@@ -25,11 +31,12 @@ namespace Skrawl.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<SkrawlContext>(options => {
-                var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            services.AddDbContext<SkrawlContext>(options =>
+            {
+                var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? Development;
                 string connectionString;
 
-                if(env == Development) 
+                if (env == Development)
                 {
                     connectionString = this.Configuration.GetConnectionString("SkrawlContext");
                 }
@@ -51,13 +58,53 @@ namespace Skrawl.API
                         TrustServerCertificate = true
                     };
 
-                    connectionString = builder.ToString();                 
+                    connectionString = builder.ToString();
                 }
 
                 options.UseNpgsql(connectionString);
             });
 
             services.AddControllers();
+
+            var jwtTokenConfig = Configuration.GetSection("jwtTokenConfig").Get<JwtTokenConfig>();
+            services.AddSingleton(jwtTokenConfig);
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options =>
+            {
+                options.RequireHttpsMetadata = true;
+                options.SaveToken = true;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = jwtTokenConfig.Issuer,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtTokenConfig.Secret)),
+                    ValidAudience = jwtTokenConfig.Audience,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.FromMinutes(1)
+                };
+            });
+
+            services.AddAuthorization(config =>
+            {
+                config.AddPolicy(Policies.Admin, Policies.AdminPolicy());
+                config.AddPolicy(Policies.User, Policies.UserPolicy());
+            });
+
+            services.AddSingleton<IJwtAuthManager, JwtAuthManager>();
+            services.AddHostedService<JwtRefreshTokenCache>();
+            services.AddScoped<IPasswordService, PasswordService>();
+            services.AddScoped<IUserService, UserService>();
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll",
+                    builder => { builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader(); });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -71,6 +118,10 @@ namespace Skrawl.API
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseCors("AllowAll");
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 

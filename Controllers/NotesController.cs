@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -20,14 +21,12 @@ namespace Skrawl.API.Controllers
 
         // GET: api/Notes
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Note>>> GetNotes()
-        {
-            return await _context.Notes.ToListAsync();
-        }
+        public async Task<ActionResult<IEnumerable<NoteDTO>>> GetNotes() =>
+            await _context.Notes.Select(x => ItemToDTO(x)).ToListAsync();
 
         // GET: api/Notes/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Note>> GetNote(long id)
+        public async Task<ActionResult<NoteDTO>> GetNote(long id)
         {
             var note = await _context.Notes.FindAsync(id);
 
@@ -36,21 +35,28 @@ namespace Skrawl.API.Controllers
                 return NotFound();
             }
 
-            return note;
+            return ItemToDTO(note);
         }
 
         // PUT: api/Notes/5
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutNote(long id, Note note)
+        public async Task<IActionResult> PutNote(long id, NoteDTO noteDTO)
         {
-            if (id != note.Id)
+            if (id != noteDTO.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(note).State = EntityState.Modified;
+            var note = await _context.Notes.FindAsync(id);
+            if (note == null)
+            {
+                return NotFound();
+            }
+
+            note.Title = noteDTO.Title;
+            note.Body = noteDTO.Body;
 
             try
             {
@@ -62,10 +68,8 @@ namespace Skrawl.API.Controllers
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
 
             return NoContent();
@@ -75,17 +79,23 @@ namespace Skrawl.API.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
-        public async Task<ActionResult<Note>> PostNote(Note note)
+        public async Task<ActionResult<NoteDTO>> PostNote(NoteDTO noteDTO)
         {
+            var note = new Note
+            {
+                Title = noteDTO.Title,
+                Body = noteDTO.Body,
+            };
+
             _context.Notes.Add(note);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetNote), new { id = note.Id }, note);
+            return CreatedAtAction(nameof(GetNote), new { id = note.Id }, ItemToDTO(note));
         }
 
         // DELETE: api/Notes/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<Note>> DeleteNote(long id)
+        public async Task<ActionResult<NoteDTO>> DeleteNote(long id)
         {
             var note = await _context.Notes.FindAsync(id);
             if (note == null)
@@ -96,12 +106,20 @@ namespace Skrawl.API.Controllers
             _context.Notes.Remove(note);
             await _context.SaveChangesAsync();
 
-            return note;
+            return ItemToDTO(note);
         }
 
         private async Task<bool> NoteExistsAsync(long id)
         {
             return await _context.Notes.AnyAsync(e => e.Id == id);
         }
+
+        private static NoteDTO ItemToDTO(Note note) =>
+        new NoteDTO
+        {
+            Id = note.Id,
+            Title = note.Title,
+            Body = note.Body
+        };
     }
 }
