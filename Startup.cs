@@ -96,10 +96,13 @@ namespace Skrawl.API
             });
 
             services.AddSingleton<IJwtAuthManager, JwtAuthManager>();
-            services.AddHostedService<JwtRefreshTokenCache>();
+
             services.AddScoped<IPasswordService, PasswordService>();
             services.AddScoped<IUserService, UserService>();
-
+            services.AddScoped<INoteService, NoteService>();
+            
+            services.AddHostedService<JwtRefreshTokenCache>();
+            
             services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll",

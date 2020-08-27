@@ -12,7 +12,7 @@ namespace Skrawl.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(Policy = Policies.Admin)]
     public class NotesController : ControllerBase
     {
         private readonly SkrawlContext _context;
@@ -24,13 +24,11 @@ namespace Skrawl.API.Controllers
 
         // GET: api/notes
         [HttpGet]
-        [Authorize(Policy = Policies.Admin)]
         public async Task<ActionResult<IEnumerable<NoteDTO>>> GetNotes() =>
             await _context.Notes.Select(x => ItemToDTO(x)).ToListAsync();
 
         // GET: api/notes/5
         [HttpGet("{id}")]
-        [Authorize(Policy = Policies.Admin)]
         public async Task<ActionResult<NoteDTO>> GetNote(long id)
         {
             var note = await _context.Notes.FindAsync(id);
@@ -45,7 +43,6 @@ namespace Skrawl.API.Controllers
 
         // PUT: api/notes/5
         [HttpPut("{id}")]
-        [Authorize(Policy = Policies.Admin)]
         public async Task<IActionResult> PutNote(long id, NoteDTO noteDTO)
         {
             if (id != noteDTO.Id)
@@ -95,9 +92,8 @@ namespace Skrawl.API.Controllers
             return CreatedAtAction(nameof(GetNote), new { id = note.Id }, ItemToDTO(note));
         }
 
-        // DELETE: api/Notes/5
+        // DELETE: api/notes/5
         [HttpDelete("{id}")]
-        [Authorize(Policy = Policies.Admin)]
         public async Task<ActionResult<NoteDTO>> DeleteNote(long id)
         {
             var note = await _context.Notes.FindAsync(id);

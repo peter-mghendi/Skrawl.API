@@ -1,3 +1,4 @@
+using System.Xml;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -6,6 +7,7 @@ using Skrawl.API.Data.Models;
 using System.Linq;
 using System.Threading.Tasks;
 using Skrawl.API.Infrastructure;
+using System.Collections.Generic;
 
 namespace Skrawl.API.Services
 {
@@ -14,6 +16,8 @@ namespace Skrawl.API.Services
         private readonly ILogger<UserService> _logger;
         private readonly SkrawlContext _context;
         private readonly IPasswordService _passwordService;
+
+        public DbSet<User> Users { get => _context.Users; }
 
         public SkrawlContext Context { get => _context; }
 
@@ -87,5 +91,11 @@ namespace Skrawl.API.Services
 
             return user;
         }
+
+        public async Task<User> FindUserByIdAsync(long id) =>
+            await _context.Users.FindAsync(id);
+
+        public async Task<User> FindUserByEmailAsync(string email) =>
+            await _context.Users.SingleAsync(u => u.Email == email);
     }
 }

@@ -38,15 +38,14 @@ namespace Skrawl.API.Controllers
         [HttpGet]
         [Authorize(Policy = Policies.Admin)]
         public async Task<ActionResult<IEnumerable<UserDTO>>> GetNotes() =>
-            await _userService.Context.Users
-                .Select(x => _userService.ItemToDTO(x)).ToListAsync();
+            await _userService.Users.Select(x => _userService.ItemToDTO(x)).ToListAsync();
 
         // GET: api/users/5
         [HttpGet("{id}")]
         [Authorize(Policy = Policies.Admin)]
         public async Task<ActionResult<UserDTO>> GetUser(long id)
         {
-            var user = await _userService.Context.Users.FindAsync(id);
+            var user = await _userService.FindUserByIdAsync(id);
 
             if (user == null)
             {
@@ -123,7 +122,7 @@ namespace Skrawl.API.Controllers
         [Authorize(Policy = Policies.Admin)]
         public async Task<ActionResult<UserDTO>> DeleteUser(long id)
         {
-            var user = await _userService.Context.Users.FindAsync(id);
+            var user = await _userService.FindUserByIdAsync(id);
             if (user == null)
             {
                 return NotFound();

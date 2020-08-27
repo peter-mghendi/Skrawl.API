@@ -14,9 +14,9 @@ namespace Skrawl.API.Controllers
     public class UserController : ControllerBase
     {
         private readonly SkrawlContext _context;
-        private readonly UserService _userService;
+        private readonly IUserService _userService;
 
-        public UserController(SkrawlContext context, UserService userService)
+        public UserController(SkrawlContext context, IUserService userService)
         {
             _context = context;
             _userService = userService;
