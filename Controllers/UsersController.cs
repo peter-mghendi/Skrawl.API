@@ -1,6 +1,4 @@
 using System.Text;
-using System.Security.Claims;
-using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +8,8 @@ using Skrawl.API.Services;
 using Skrawl.API.Infrastructure;
 using Skrawl.API.Data.Models;
 using Microsoft.Extensions.Options;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace Skrawl.API.Controllers
 {
@@ -34,8 +34,16 @@ namespace Skrawl.API.Controllers
             _passwordService = passwordService;
         }
 
-        // GET: api/Users/5
+        // GET: api/notes
+        [HttpGet]
+        [Authorize(Policy = Policies.Admin)]
+        public async Task<ActionResult<IEnumerable<UserDTO>>> GetNotes() =>
+            await _userService.Context.Users
+                .Select(x => _userService.ItemToDTO(x)).ToListAsync();
+
+        // GET: api/users/5
         [HttpGet("{id}")]
+        [Authorize(Policy = Policies.Admin)]
         public async Task<ActionResult<UserDTO>> GetUser(long id)
         {
             var user = await _userService.Context.Users.FindAsync(id);
@@ -48,10 +56,9 @@ namespace Skrawl.API.Controllers
             return _userService.ItemToDTO(user);
         }
 
-        // PUT: api/Users/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for
-        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
+        // PUT: api/users/5
         [HttpPut("{id}")]
+        [Authorize(Policy = Policies.Admin)]
         public async Task<IActionResult> PutUser(long id, User user)
         {
             if (id != user.Id)
@@ -111,8 +118,9 @@ namespace Skrawl.API.Controllers
             return CreatedAtAction(nameof(GetUser), new { id = user.Id }, _userService.ItemToDTO(user));
         }
 
-        // DELETE: api/Users/5
+        // DELETE: api/users/5
         [HttpDelete("{id}")]
+        [Authorize(Policy = Policies.Admin)]
         public async Task<ActionResult<UserDTO>> DeleteUser(long id)
         {
             var user = await _userService.Context.Users.FindAsync(id);

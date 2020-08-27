@@ -1,15 +1,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Skrawl.API.Data;
 using Skrawl.API.Data.Models;
+using Skrawl.API.Infrastructure;
 
 namespace Skrawl.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class NotesController : ControllerBase
     {
         private readonly SkrawlContext _context;
@@ -19,13 +22,15 @@ namespace Skrawl.API.Controllers
             _context = context;
         }
 
-        // GET: api/Notes
+        // GET: api/notes
         [HttpGet]
+        [Authorize(Policy = Policies.Admin)]
         public async Task<ActionResult<IEnumerable<NoteDTO>>> GetNotes() =>
             await _context.Notes.Select(x => ItemToDTO(x)).ToListAsync();
 
-        // GET: api/Notes/5
+        // GET: api/notes/5
         [HttpGet("{id}")]
+        [Authorize(Policy = Policies.Admin)]
         public async Task<ActionResult<NoteDTO>> GetNote(long id)
         {
             var note = await _context.Notes.FindAsync(id);
@@ -38,10 +43,9 @@ namespace Skrawl.API.Controllers
             return ItemToDTO(note);
         }
 
-        // PUT: api/Notes/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for
-        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
+        // PUT: api/notes/5
         [HttpPut("{id}")]
+        [Authorize(Policy = Policies.Admin)]
         public async Task<IActionResult> PutNote(long id, NoteDTO noteDTO)
         {
             if (id != noteDTO.Id)
@@ -75,9 +79,7 @@ namespace Skrawl.API.Controllers
             return NoContent();
         }
 
-        // POST: api/Notes
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for
-        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
+        // POST: api/notes
         [HttpPost]
         public async Task<ActionResult<NoteDTO>> PostNote(NoteDTO noteDTO)
         {
@@ -95,6 +97,7 @@ namespace Skrawl.API.Controllers
 
         // DELETE: api/Notes/5
         [HttpDelete("{id}")]
+        [Authorize(Policy = Policies.Admin)]
         public async Task<ActionResult<NoteDTO>> DeleteNote(long id)
         {
             var note = await _context.Notes.FindAsync(id);
@@ -109,17 +112,15 @@ namespace Skrawl.API.Controllers
             return ItemToDTO(note);
         }
 
-        private async Task<bool> NoteExistsAsync(long id)
-        {
-            return await _context.Notes.AnyAsync(e => e.Id == id);
-        }
+        private async Task<bool> NoteExistsAsync(long id) =>
+            await _context.Notes.AnyAsync(e => e.Id == id);
 
         private static NoteDTO ItemToDTO(Note note) =>
-        new NoteDTO
-        {
-            Id = note.Id,
-            Title = note.Title,
-            Body = note.Body
-        };
+            new NoteDTO
+            {
+                Id = note.Id,
+                Title = note.Title,
+                Body = note.Body
+            };
     }
 }

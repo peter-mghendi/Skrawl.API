@@ -150,6 +150,7 @@ namespace Skrawl.API.Controllers
         }
 
         [HttpPost("impersonation/stop")]
+        [Authorize]
         public async Task<ActionResult<LoginResult>> StopImpersonation()
         {
             var email = User.Identity.Name;
