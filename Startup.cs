@@ -101,7 +101,12 @@ namespace Skrawl.API
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<INoteService, NoteService>();
             
-            services.AddHostedService<JwtRefreshTokenCache>();
+            /** 
+             * TODO 
+             * Move refresh tokens to database, hitting Heroku's RAM limits
+             * Set more reasonable timers for the cleanup process
+             */
+            // services.AddHostedService<JwtRefreshTokenCache>();
             
             services.AddCors(options =>
             {

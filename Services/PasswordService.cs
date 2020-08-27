@@ -17,7 +17,7 @@ namespace Skrawl.API.Services
             argon2.Salt = salt;
             argon2.DegreeOfParallelism = 8;
             argon2.Iterations = 4;
-            argon2.MemorySize = 1024 * 1024;
+            argon2.MemorySize = 1024 * 128;
 
             return argon2.GetBytes(16);
         }
