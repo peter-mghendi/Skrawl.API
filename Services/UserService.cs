@@ -62,8 +62,6 @@ namespace Skrawl.API.Services
 
             User user = await _context.Users.SingleAsync(x => x.Email.Equals(email));
 
-            if (user == null) _logger.LogInformation("Null user");
-
             return user.Role;
         }
 

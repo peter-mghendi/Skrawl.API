@@ -95,7 +95,7 @@ namespace Skrawl.API.Controllers
             }
            
            note.Title = noteDTO.Title;
-           note.Body = note.Body;
+           note.Body = noteDTO.Body;
 
             try
             {
