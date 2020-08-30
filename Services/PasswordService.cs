@@ -13,19 +13,19 @@ namespace Skrawl.API.Services
         {
             salt ??= CreateSalt();
 
-            var argon2 = new Argon2id(password);
+            using var argon2 = new Argon2id(password);
             argon2.Salt = salt;
             argon2.DegreeOfParallelism = 8;
             argon2.Iterations = 4;
             argon2.MemorySize = 1024 * 128;
 
-            return argon2.GetBytes(16);
+            return argon2.GetBytes(16);                
         }
 
         private byte[] CreateSalt()
         {
             var buffer = new byte[16];
-            var rng = new RNGCryptoServiceProvider();
+            using var rng = new RNGCryptoServiceProvider();
             rng.GetBytes(buffer);
             return buffer;
         }
