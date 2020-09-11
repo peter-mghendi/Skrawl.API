@@ -46,7 +46,7 @@ namespace Skrawl.API.Controllers
 
             if (!await _userService.IsValidUserCredentialsAsync(request.Email, request.Password))
             {
-                return Unauthorized();
+                return NotFound();
             }
 
             var role = await _userService.GetUserRoleAsync(request.Email);
