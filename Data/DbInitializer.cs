@@ -13,7 +13,7 @@ namespace Skrawl.API.Data
 {
     public static class DbInitializer
     {
-        public static void Initialize(SkrawlContext context)
+        public static void Initialize(SkrawlContext context, string defaultPassword)
         {
             // context.Database.EnsureCreated();
 
@@ -26,7 +26,7 @@ namespace Skrawl.API.Data
             var passwordService = new PasswordService();
             byte[] salt = null;
 
-            byte[] password = passwordService.HashPassword(Encoding.UTF8.GetBytes("password"), ref salt);
+            byte[] password = passwordService.HashPassword(Encoding.UTF8.GetBytes(defaultPassword), ref salt);
 
             List<User> users = new Faker<User>()
                 .StrictMode(false)

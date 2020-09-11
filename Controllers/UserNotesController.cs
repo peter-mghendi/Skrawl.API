@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Skrawl.API.Data;
 using Skrawl.API.Data.Models;
 using Skrawl.API.Services;
@@ -15,12 +16,14 @@ namespace Skrawl.API.Controllers
     [Authorize]
     public class UserNotesController : ControllerBase
     {
+        private readonly ILogger<UserNotesController> _logger;
         private readonly SkrawlContext _context;
         private readonly IUserService _userService;
         private readonly INoteService _noteService;
 
-        public UserNotesController(SkrawlContext context, IUserService userService, INoteService noteService)
+        public UserNotesController(ILogger<UserNotesController> logger, SkrawlContext context, IUserService userService, INoteService noteService)
         {
+            _logger = logger;
             _context = context;
             _userService = userService;
             _noteService = noteService;
@@ -53,7 +56,7 @@ namespace Skrawl.API.Controllers
             }
 
             var note = await _context.Notes
-                .SingleAsync(n => n.Id == id && n.UserId == user.Id);
+                .SingleOrDefaultAsync(n => n.Id == id && n.UserId == user.Id);
 
             if (note == null)
             {
@@ -92,7 +95,7 @@ namespace Skrawl.API.Controllers
             }
            
            note.Title = noteDTO.Title;
-           note.Body = note.Body;
+           note.Body = noteDTO.Body;
 
             try
             {
@@ -111,11 +114,11 @@ namespace Skrawl.API.Controllers
             return NoContent();
         }
 
-        // POST: api/me
+        // POST: api/me/notes
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
-        public async Task<ActionResult<Note>> PostNote(Note note)
+        public async Task<ActionResult<NoteDTO>> PostNote(NoteDTO noteDTO)
         {
             var user = await _userService.FindUserByEmailAsync(User.Identity.Name);
 
@@ -124,17 +127,21 @@ namespace Skrawl.API.Controllers
                 return BadRequest();
             }
 
-            note.UserId = user.Id;
+            var note = new Note{
+                Title = noteDTO.Title,
+                Body = noteDTO.Body,
+                UserId = user.Id
+            };
 
             _context.Notes.Add(note);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetNote), new { id = note.Id }, note);
+            return CreatedAtAction(nameof(GetNote), new { id = note.Id }, _noteService.ItemToDTO(note));
         }
 
         // DELETE: api/me/notes/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<Note>> DeleteNote(long id)
+        public async Task<ActionResult<NoteDTO>> DeleteNote(long id)
         {
             var user = await _userService.FindUserByEmailAsync(User.Identity.Name);
 
@@ -157,7 +164,7 @@ namespace Skrawl.API.Controllers
             _context.Notes.Remove(note);
             await _context.SaveChangesAsync();
 
-            return note;
+            return _noteService.ItemToDTO(note);
         }
 
         private bool NoteExists(long id)

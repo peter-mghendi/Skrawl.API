@@ -1,5 +1,6 @@
 using System;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -24,12 +25,14 @@ namespace Skrawl.API
             {
                 var services = scope.ServiceProvider;
                 var logger = services.GetRequiredService<ILogger<Program>>();
+                var configuration = services.GetRequiredService<IConfiguration>();
+                string defaultPassword = configuration.GetValue<string>("DefaultPassword");
 
                 try
                 {
                     var context = services.GetRequiredService<SkrawlContext>();
-                    DbInitializer.Initialize(context);
-                    logger.LogInformation($"Database has been initialized.");
+                    DbInitializer.Initialize(context, defaultPassword);
+                    logger.LogInformation("Database has been initialized.");
                 }
                 catch (Exception ex)
                 {
