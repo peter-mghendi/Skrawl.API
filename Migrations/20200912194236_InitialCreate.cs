@@ -9,6 +9,19 @@ namespace Skrawl.API.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "refresh_token",
+                columns: table => new
+                {
+                    token_string = table.Column<string>(nullable: false),
+                    email = table.Column<string>(nullable: true),
+                    expire_at = table.Column<DateTime>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_refresh_token", x => x.token_string);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "users",
                 columns: table => new
                 {
@@ -52,6 +65,17 @@ namespace Skrawl.API.Migrations
                 column: "user_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_refresh_token_email",
+                table: "refresh_token",
+                column: "email");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_refresh_token_token_string",
+                table: "refresh_token",
+                column: "token_string",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_users_email",
                 table: "users",
                 column: "email",
@@ -62,6 +86,9 @@ namespace Skrawl.API.Migrations
         {
             migrationBuilder.DropTable(
                 name: "notes");
+
+            migrationBuilder.DropTable(
+                name: "refresh_token");
 
             migrationBuilder.DropTable(
                 name: "users");

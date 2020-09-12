@@ -47,6 +47,30 @@ namespace Skrawl.API.Migrations
                     b.ToTable("notes");
                 });
 
+            modelBuilder.Entity("Skrawl.API.Data.Models.RefreshToken", b =>
+                {
+                    b.Property<string>("TokenString")
+                        .HasColumnName("token_string")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Email")
+                        .HasColumnName("email")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("ExpireAt")
+                        .HasColumnName("expire_at")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.HasKey("TokenString");
+
+                    b.HasIndex("Email");
+
+                    b.HasIndex("TokenString")
+                        .IsUnique();
+
+                    b.ToTable("refresh_token");
+                });
+
             modelBuilder.Entity("Skrawl.API.Data.Models.User", b =>
                 {
                     b.Property<long>("Id")
