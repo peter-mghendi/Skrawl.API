@@ -22,17 +22,20 @@ namespace Skrawl.API.Controllers
         private readonly ILogger<TokensController> _logger;
         private readonly IUserService _userService;
         private readonly IJwtAuthManager _jwtAuthManager;
+        private readonly IRefreshTokenService _refreshTokenService;
 
         public TokensController(
             SkrawlContext context,
             ILogger<TokensController> logger,
             IUserService userService,
-            IJwtAuthManager jwtAuthManager)
+            IJwtAuthManager jwtAuthManager,
+            IRefreshTokenService refreshTokenService)
         {
             _context = context;
             _logger = logger;
             _userService = userService;
             _jwtAuthManager = jwtAuthManager;
+            _refreshTokenService = refreshTokenService;
         }
 
         [AllowAnonymous]
@@ -57,7 +60,7 @@ namespace Skrawl.API.Controllers
                 new Claim(ClaimTypes.Role, role)
             };
 
-            var jwtResult = _jwtAuthManager.GenerateTokens(request.Email, claims, DateTime.Now);
+            var jwtResult = await _jwtAuthManager.GenerateTokensAsync(request.Email, claims, DateTime.Now);
             _logger.LogInformation($"User [{request.Email}] logged in the system.");
             
             return new LoginResult
@@ -71,10 +74,10 @@ namespace Skrawl.API.Controllers
 
         [HttpPost("invalidate")]
         [Authorize]
-        public ActionResult Logout()
+        public async Task<ActionResult> Logout()
         {
             var email = User.Identity.Name;
-            _jwtAuthManager.RemoveRefreshTokenByEmail(email); // can be more specific to ip, user agent, device name, etc.
+            await _refreshTokenService.RemoveRefreshTokenByEmailAsync(email); // can be more specific to ip, user agent, device name, etc. 
             _logger.LogInformation($"User [{email}] logged out the system.");
             return Ok();
         }
@@ -94,7 +97,7 @@ namespace Skrawl.API.Controllers
                 }
 
                 var accessToken = await HttpContext.GetTokenAsync("Bearer", "access_token");
-                var jwtResult = _jwtAuthManager.Refresh(request.RefreshToken, accessToken, DateTime.Now);
+                var jwtResult = await _jwtAuthManager.RefreshAsync(request.RefreshToken, accessToken, DateTime.Now);
                 _logger.LogInformation($"User [{email}] has refreshed JWT token.");
                 return new LoginResult
                 {
@@ -136,7 +139,7 @@ namespace Skrawl.API.Controllers
                 new Claim("OriginalEmail", email)
             };
 
-            var jwtResult = _jwtAuthManager.GenerateTokens(request.Email, claims, DateTime.Now);
+            var jwtResult = await _jwtAuthManager.GenerateTokensAsync(request.Email, claims, DateTime.Now);
             _logger.LogInformation($"User [{request.Email}] is impersonating [{request.Email}] in the system.");
 
             return new LoginResult
@@ -168,7 +171,7 @@ namespace Skrawl.API.Controllers
                 new Claim(ClaimTypes.Role, role)
             };
 
-            var jwtResult = _jwtAuthManager.GenerateTokens(originalEmail, claims, DateTime.Now);
+            var jwtResult = await _jwtAuthManager.GenerateTokensAsync(originalEmail, claims, DateTime.Now);
             _logger.LogInformation($"User [{originalEmail}] has stopped impersonation.");
 
             return new LoginResult
