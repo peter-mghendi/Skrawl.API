@@ -90,7 +90,7 @@ namespace Skrawl.API.Controllers
 
                 if (string.IsNullOrWhiteSpace(request.RefreshToken))
                 {
-                    return Unauthorized();
+                    return BadRequest();
                 }
 
                 var accessToken = await HttpContext.GetTokenAsync("Bearer", "access_token");
