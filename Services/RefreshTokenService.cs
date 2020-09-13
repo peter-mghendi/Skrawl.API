@@ -31,7 +31,7 @@ namespace Skrawl.API.Services
             var refreshToken = new RefreshToken
             {
                 Email = email,
-                TokenString = GenerateRefreshTokenString(),
+                TokenString = await GenerateRefreshTokenString(),
                 ExpireAt = now.AddMinutes(expiry)
             };
 
@@ -63,13 +63,19 @@ namespace Skrawl.API.Services
             await _context.SaveChangesAsync();
         }
 
-        // TODO Improve this to generate truly unique strings
-        private static string GenerateRefreshTokenString()
+        private async Task<string> GenerateRefreshTokenString()
         {
+            string tokenString;
             var randomNumber = new byte[32];
             using var randomNumberGenerator = RandomNumberGenerator.Create();
-            randomNumberGenerator.GetBytes(randomNumber);
-            return Convert.ToBase64String(randomNumber);
+
+            do
+            {
+                randomNumberGenerator.GetBytes(randomNumber);
+                tokenString = Convert.ToBase64String(randomNumber);
+            } while (await _context.RefreshTokens.CountAsync(r => r.TokenString == tokenString) > 0);
+
+            return tokenString;
         }
     }
 }

@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace Skrawl.API.Data.Models
 {
-    [Table("refresh_token")]
+    [Table("refresh_tokens")]
     public class RefreshToken
     {   
         [Key, Column("token_string")]

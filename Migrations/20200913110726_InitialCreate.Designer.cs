@@ -10,7 +10,7 @@ using Skrawl.API.Data;
 namespace Skrawl.API.Migrations
 {
     [DbContext(typeof(SkrawlContext))]
-    [Migration("20200912194236_InitialCreate")]
+    [Migration("20200913110726_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -70,7 +70,7 @@ namespace Skrawl.API.Migrations
                     b.HasIndex("TokenString")
                         .IsUnique();
 
-                    b.ToTable("refresh_token");
+                    b.ToTable("refresh_tokens");
                 });
 
             modelBuilder.Entity("Skrawl.API.Data.Models.User", b =>

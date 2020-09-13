@@ -68,7 +68,7 @@ namespace Skrawl.API.Migrations
                     b.HasIndex("TokenString")
                         .IsUnique();
 
-                    b.ToTable("refresh_token");
+                    b.ToTable("refresh_tokens");
                 });
 
             modelBuilder.Entity("Skrawl.API.Data.Models.User", b =>
