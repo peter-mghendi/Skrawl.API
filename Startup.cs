@@ -95,23 +95,21 @@ namespace Skrawl.API
                 config.AddPolicy(Policies.User, Policies.UserPolicy());
             });
 
-            services.AddSingleton<IJwtAuthManager, JwtAuthManager>();
+            services.AddSingleton<IPasswordService, PasswordService>();
 
-            services.AddScoped<IPasswordService, PasswordService>();
+            services.AddScoped<IJwtAuthManager, JwtAuthManager>();
+
+            services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<INoteService, NoteService>();
-            
-            /** 
-             * TODO 
-             * Move refresh tokens to database, hitting Heroku's RAM limits
-             * Set more reasonable timers for the cleanup process
-             */
-            // services.AddHostedService<JwtRefreshTokenCache>();
-            
+
+            services.AddHostedService<JwtRefreshTokenCache>();
+
             services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll",
-                    builder => { builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader(); });
+                    builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
             });
         }
 
@@ -133,10 +131,7 @@ namespace Skrawl.API
 
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
+            app.UseEndpoints(endpoints => endpoints.MapControllers());
         }
     }
 }

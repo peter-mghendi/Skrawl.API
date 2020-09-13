@@ -10,7 +10,7 @@ using Skrawl.API.Data;
 namespace Skrawl.API.Migrations
 {
     [DbContext(typeof(SkrawlContext))]
-    [Migration("20200825162304_InitialCreate")]
+    [Migration("20200913110726_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -47,6 +47,30 @@ namespace Skrawl.API.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("notes");
+                });
+
+            modelBuilder.Entity("Skrawl.API.Data.Models.RefreshToken", b =>
+                {
+                    b.Property<string>("TokenString")
+                        .HasColumnName("token_string")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Email")
+                        .HasColumnName("email")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("ExpireAt")
+                        .HasColumnName("expire_at")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.HasKey("TokenString");
+
+                    b.HasIndex("Email");
+
+                    b.HasIndex("TokenString")
+                        .IsUnique();
+
+                    b.ToTable("refresh_tokens");
                 });
 
             modelBuilder.Entity("Skrawl.API.Data.Models.User", b =>
