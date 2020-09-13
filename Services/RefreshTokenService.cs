@@ -20,7 +20,7 @@ namespace Skrawl.API.Services
             _logger = logger;
             _context = context;
         }
-        
+
         public async Task<RefreshToken> GetTokenAsync(string tokenString)
         {
             return await _context.RefreshTokens.SingleAsync(r => r.TokenString == tokenString);
@@ -45,8 +45,14 @@ namespace Skrawl.API.Services
         public async Task RemoveExpiredRefreshTokensAsync(DateTime now)
         {
             var expiredTokens = _context.RefreshTokens.Where(x => x.ExpireAt < now);
-            _context.RefreshTokens.RemoveRange(expiredTokens);
-            await _context.SaveChangesAsync();
+            var count = await expiredTokens.CountAsync();
+
+            if (count > 0)
+            {
+                _context.RefreshTokens.RemoveRange(expiredTokens);
+                _logger.LogInformation($"Removed [{count}] refresh tokens from database.");
+                await _context.SaveChangesAsync();
+            }
         }
 
         // can be more specific to ip, user agent, device name, etc.

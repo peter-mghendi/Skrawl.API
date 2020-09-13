@@ -97,19 +97,14 @@ namespace Skrawl.API
 
             services.AddSingleton<IPasswordService, PasswordService>();
 
-            services.AddScoped<IJwtAuthManager, JwtAuthManager>(); // TODO Lifetimes
+            services.AddScoped<IJwtAuthManager, JwtAuthManager>();
 
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<INoteService, NoteService>();
 
-            /** 
-             * TODO 
-             * Move refresh tokens to database, hitting Heroku's RAM limits
-             * Set more reasonable timers for the cleanup process
-             */
-            // services.AddHostedService<JwtRefreshTokenCache>();
+            services.AddHostedService<JwtRefreshTokenCache>();
 
             services.AddCors(options =>
             {
